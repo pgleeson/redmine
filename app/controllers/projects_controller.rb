@@ -48,7 +48,11 @@ class ProjectsController < ApplicationController
   def index
     respond_to do |format|
       format.html {
-        @projects = Project.visible.find(:all, :order => 'lft')
+        scope = Project
+        unless params[:closed]
+          scope = scope.active
+        end
+        @projects = scope.visible.order('lft').all
       }
       format.api  {
         @offset, @limit = api_offset_and_limit
@@ -152,12 +156,8 @@ class ProjectsController < ApplicationController
 
     cond = @project.project_condition(Setting.display_subprojects_issues?)
 
-    @open_issues_by_tracker = Issue.visible.count(:group => :tracker,
-                                            :include => [:project, :status, :tracker],
-                                            :conditions => ["(#{cond}) AND #{IssueStatus.table_name}.is_closed=?", false])
-    @total_issues_by_tracker = Issue.visible.count(:group => :tracker,
-                                            :include => [:project, :status, :tracker],
-                                            :conditions => cond)
+    @open_issues_by_tracker = Issue.visible.open.where(cond).count(:group => :tracker)
+    @total_issues_by_tracker = Issue.visible.where(cond).count(:group => :tracker)
 
     if User.current.allowed_to?(:view_time_entries, @project)
       @total_hours = TimeEntry.visible.sum(:hours, :include => :project, :conditions => cond).to_f
@@ -222,6 +222,16 @@ class ProjectsController < ApplicationController
   def unarchive
     @project.unarchive if request.post? && !@project.active?
     redirect_to(url_for(:controller => 'admin', :action => 'projects', :status => params[:status]))
+  end
+
+  def close
+    @project.close
+    redirect_to project_path(@project)
+  end
+
+  def reopen
+    @project.reopen
+    redirect_to project_path(@project)
   end
 
   # Delete @project

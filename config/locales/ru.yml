@@ -68,7 +68,7 @@ ru:
     human:
       format:
         delimiter: ""
-        precision: 2
+        precision: 3
       # Rails 2.2
       # storage_units: [байт, КБ, МБ, ГБ, ТБ]
 
@@ -116,6 +116,9 @@ ru:
         few:   "около %{count} часов"
         many:  "около %{count} часов"
         other: "около %{count} часа"
+      x_hours:
+        one:   "1 hour"
+        other: "%{count} hours"
       x_days:
         one:   "%{count} день"
         few:   "%{count} дня"
@@ -1144,3 +1147,18 @@ ru:
   setting_unsubscribe: "Разрешить пользователям удалять свои учетные записи" 
   button_delete_my_account: "Удалить мою учетную запись" 
   text_account_destroy_confirmation: "Ваша учетная запись будет полностью удалена без возможности восстановления.\nВы уверены, что хотите продолжить?" 
+  error_session_expired: Your session has expired. Please login again.
+  text_session_expiration_settings: "Warning: changing these settings may expire the current sessions including yours."
+  setting_session_lifetime: Session maximum lifetime
+  setting_session_timeout: Session inactivity timeout
+  label_session_expiration: Session expiration
+  permission_close_project: Close / reopen the project
+  label_show_closed_projects: View closed projects
+  button_close: Close
+  button_reopen: Reopen
+  project_status_active: active
+  project_status_closed: closed
+  project_status_archived: archived
+  text_project_closed: This project is closed and read-only.
+  notice_user_successful_create: User %{id} created.
+  field_core_fields: Standard fields

@@ -91,7 +91,7 @@ module ProjectsHelper
             s << "</div>\n"
             ancestors << project
         end
-
+      
       end
       s << ("</li></ul>\n" * ancestors.size)
       @project = original_project

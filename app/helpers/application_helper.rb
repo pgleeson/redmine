@@ -128,7 +128,7 @@ module ApplicationHelper
       h(truncate(message.subject, :length => 60)),
       { :controller => 'messages', :action => 'show',
         :board_id => message.board_id,
-        :id => message.root,
+        :id => (message.parent_id || message.id),
         :r => (message.parent_id && message.id),
         :anchor => (message.parent_id ? "message-#{message.id}" : nil)
       }.merge(options),
@@ -145,11 +145,11 @@ module ApplicationHelper
   #   link_to_project(project, {}, :class => "project") # => html options with default url (project overview)
   #
   def link_to_project(project, options={}, html_options = nil)
-    if project.active?
+    if project.archived?
+      h(project)
+    else
       url = {:controller => 'projects', :action => 'show', :id => project}.merge(options)
       link_to(h(project), url, html_options)
-    else
-      h(project)
     end
   end
 
@@ -237,23 +237,24 @@ module ApplicationHelper
   # Renders the project quick-jump box
   def render_project_jump_box
     return unless User.current.logged?
-    projects = User.current.memberships.collect(&:project).compact.uniq
+    projects = User.current.memberships.collect(&:project).compact.select(&:active?).uniq
     if projects.any?
-      s = '<select onchange="if (this.value != \'\') { window.location = this.value; }">' +
-            "<option value=''>#{ l(:label_jump_to_a_project) }</option>" +
-            '<option value="" disabled="disabled">---</option>'
-      s << project_tree_options_for_select(projects, :selected => @project) do |p|
-        { :value => url_for(:controller => 'projects', :action => 'show', :id => p, :jump => current_menu_item) }
+      options =
+        ("<option value=''>#{ l(:label_jump_to_a_project) }</option>" +
+         '<option value="" disabled="disabled">---</option>').html_safe
+
+      options << project_tree_options_for_select(projects, :selected => @project) do |p|
+        { :value => project_path(:id => p, :jump => current_menu_item) }
       end
-      s << '</select>'
-      s.html_safe
+
+      select_tag('project_quick_jump_box', options, :onchange => 'if (this.value != \'\') { window.location = this.value; }')
     end
   end
 
   def project_tree_options_for_select(projects, options = {})
     s = ''
     project_tree(projects) do |project, level|
-      name_prefix = (level > 0 ? ('&nbsp;' * 2 * level + '&#187; ').html_safe : '')
+      name_prefix = (level > 0 ? '&nbsp;' * 2 * level + '&#187; ' : '').html_safe
       tag_options = {:value => project.id}
       if project == options[:selected] || (options[:selected].respond_to?(:include?) && options[:selected].include?(project))
         tag_options[:selected] = 'selected'
